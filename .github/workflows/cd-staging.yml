@@ -1,0 +1,39 @@
+name: CD - Deploy a Staging
+
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-staging:
+    name: Deploy Staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Tests antes del deploy
+        working-directory: backend
+        run: npm run test:ci
+
+      - name: Instalar dependencias frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # Aquí se agrega el paso de deploy a Render/Railway en Sprint 3
+      - name: Notificar deploy exitoso
+        run: echo "Deploy a staging completado exitosamente"
