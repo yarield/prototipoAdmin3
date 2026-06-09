@@ -27,3 +27,9 @@ npm-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Base de datos SQLite (dev local)
+backend/data/*.db
+
+# Next.js build
+frontend/.next/
