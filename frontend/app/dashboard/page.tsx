@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { getToken, removeToken } from '@/lib/api';
 
 interface User { id: number; name: string; email: string; role: string; }
-interface NotifCount { unread: number; }
 
 export default function DashboardPage() {
   const router = useRouter();

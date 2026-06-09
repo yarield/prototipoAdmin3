@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { getToken } from '@/lib/api';
 
@@ -20,29 +20,30 @@ interface Artist {
 export default function SearchPage() {
   const [artists, setArtists] = useState<Artist[]>([]);
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [filters, setFilters] = useState({ name: '', category: '', province: '' });
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState('');
+  const [category, setCategory] = useState('');
+  const [province, setProvince] = useState('');
 
-  async function search(f = filters) {
-    setLoading(true);
+  const fetchArtists = useCallback(async (n: string, cat: string, prov: string) => {
     const params = new URLSearchParams();
-    if (f.name) params.set('name', f.name);
-    if (f.category) params.set('category', f.category);
-    if (f.province) params.set('province', f.province);
+    if (n) params.set('name', n);
+    if (cat) params.set('category', cat);
+    if (prov) params.set('province', prov);
     const res = await fetch(`http://localhost:3000/api/search?${params}`);
     const data = await res.json();
     setArtists(data.artists || []);
     setTotal(data.total || 0);
     setLoading(false);
-  }
+  }, []);
 
-  useEffect(() => { search(); }, []);
+  useEffect(() => {
+    fetchArtists('', '', '');
+  }, [fetchArtists]);
 
-  function handleChange(key: string, value: string) {
-    const next = { ...filters, [key]: value };
-    setFilters(next);
-    search(next);
-  }
+  function handleName(v: string) { setName(v); setLoading(true); fetchArtists(v, category, province); }
+  function handleCategory(v: string) { setCategory(v); setLoading(true); fetchArtists(name, v, province); }
+  function handleProvince(v: string) { setProvince(v); setLoading(true); fetchArtists(name, category, v); }
 
   const isLoggedIn = !!getToken();
 
@@ -53,7 +54,12 @@ export default function SearchPage() {
         <div style={s.headerRight}>
           {isLoggedIn
             ? <Link href="/dashboard" style={s.link}>Mi panel</Link>
-            : <><Link href="/auth/login" style={s.link}>Iniciar sesión</Link><Link href="/auth/register" style={s.btnSmall}>Registrarse</Link></>}
+            : (
+              <>
+                <Link href="/auth/login" style={s.link}>Iniciar sesión</Link>
+                <Link href="/auth/register" style={s.btnSmall}>Registrarse</Link>
+              </>
+            )}
         </div>
       </header>
 
@@ -64,15 +70,15 @@ export default function SearchPage() {
         <div style={s.filters}>
           <input
             placeholder="Buscar por nombre..."
-            value={filters.name}
-            onChange={e => handleChange('name', e.target.value)}
+            value={name}
+            onChange={e => handleName(e.target.value)}
             style={s.filterInput}
           />
-          <select value={filters.category} onChange={e => handleChange('category', e.target.value)} style={s.filterInput}>
+          <select value={category} onChange={e => handleCategory(e.target.value)} style={s.filterInput}>
             <option value="">Todas las categorías</option>
             {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select value={filters.province} onChange={e => handleChange('province', e.target.value)} style={s.filterInput}>
+          <select value={province} onChange={e => handleProvince(e.target.value)} style={s.filterInput}>
             <option value="">Todas las provincias</option>
             {PROVINCES.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
@@ -80,26 +86,26 @@ export default function SearchPage() {
 
         {loading && <p style={s.hint}>Buscando...</p>}
 
-        <div style={s.grid}>
-          {artists.map(a => (
-            <Link key={a.id} href={`/artists/${a.id}`} style={s.card}>
-              <div style={s.photoWrapper}>
-                {a.photo_url
-                  ? <img src={`http://localhost:3000${a.photo_url}`} alt={a.name} style={s.photo} />
-                  : <div style={s.photoPlaceholder}>{(a.artistic_name || a.name).charAt(0)}</div>}
-              </div>
-              <div style={s.cardBody}>
-                <strong>{a.artistic_name || a.name}</strong>
-                <span style={s.category}>{a.art_category}</span>
-                {a.province && <span style={s.province}>📍 {a.province}</span>}
-                {a.bio && <p style={s.bio}>{a.bio.slice(0, 80)}{a.bio.length > 80 ? '...' : ''}</p>}
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {!loading && artists.length === 0 && (
-          <p style={s.empty}>No se encontraron artistas con esos filtros.</p>
+        {!loading && (
+          <div style={s.grid}>
+            {artists.map(a => (
+              <Link key={a.id} href={`/artists/${a.id}`} style={s.card}>
+                <div style={s.photoWrapper}>
+                  {a.photo_url
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    ? <img src={`http://localhost:3000${a.photo_url}`} alt={a.artistic_name || a.name} style={s.photo} />
+                    : <div style={s.photoPlaceholder}>{(a.artistic_name || a.name).charAt(0)}</div>}
+                </div>
+                <div style={s.cardBody}>
+                  <strong>{a.artistic_name || a.name}</strong>
+                  <span style={s.category}>{a.art_category}</span>
+                  {a.province && <span style={s.province}>📍 {a.province}</span>}
+                  {a.bio && <p style={s.bio}>{a.bio.slice(0, 80)}{a.bio.length > 80 ? '...' : ''}</p>}
+                </div>
+              </Link>
+            ))}
+            {artists.length === 0 && <p style={s.empty}>No se encontraron artistas con esos filtros.</p>}
+          </div>
         )}
       </div>
     </main>
@@ -118,7 +124,7 @@ const s: Record<string, React.CSSProperties> = {
   filters: { display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' },
   filterInput: { padding: '0.6rem 0.8rem', border: '1px solid #ddd', borderRadius: '6px', fontSize: '0.95rem', minWidth: '180px', background: '#fff' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem' },
-  card: { background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', textDecoration: 'none', color: '#333', overflow: 'hidden', transition: 'box-shadow 0.2s' },
+  card: { background: '#fff', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.07)', textDecoration: 'none', color: '#333', overflow: 'hidden' },
   photoWrapper: { height: '140px', background: '#e8f0fe', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   photo: { width: '100%', height: '100%', objectFit: 'cover' },
   photoPlaceholder: { fontSize: '3rem', fontWeight: 700, color: '#0070f3' },
@@ -126,5 +132,5 @@ const s: Record<string, React.CSSProperties> = {
   category: { fontSize: '0.8rem', background: '#e8f0fe', color: '#0070f3', padding: '0.15rem 0.5rem', borderRadius: '4px', alignSelf: 'flex-start', fontWeight: 600 },
   province: { fontSize: '0.8rem', color: '#666' },
   bio: { fontSize: '0.85rem', color: '#555', marginTop: '0.25rem' },
-  empty: { textAlign: 'center', color: '#999', marginTop: '3rem', fontSize: '1.1rem' },
+  empty: { textAlign: 'center', color: '#999', marginTop: '3rem', fontSize: '1.1rem', gridColumn: '1 / -1' },
 };

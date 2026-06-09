@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { getToken } from '@/lib/api';
 
@@ -12,7 +12,6 @@ interface Slot { date: string; status: string; }
 
 export default function ArtistPublicPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const [profile, setProfile] = useState<ArtistProfile | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
