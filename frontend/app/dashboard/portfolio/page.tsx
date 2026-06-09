@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getToken } from '@/lib/api';
 
-interface PortfolioItem { id: number; title: string; description: string; file_url: string; media_type: string; }
+interface PortfolioItem { id: number; title: string; description: string; file_url: string; file_type: string; }
 
 export default function PortfolioPage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function PortfolioPage() {
     if (!token) { router.push('/auth/login'); return; }
     fetch('http://localhost:3000/api/artists/me/portfolio', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
-      .then(d => { if (d.items) setItems(d.items); });
+      .then(d => { if (d.portfolio) setItems(d.portfolio); });
   }
 
   useEffect(() => { fetchPortfolio(); }, []);
@@ -62,8 +62,8 @@ export default function PortfolioPage() {
     fetchPortfolio();
   }
 
-  const images = items.filter(i => i.media_type === 'image');
-  const videos = items.filter(i => i.media_type === 'video');
+  const images = items.filter(i => i.file_type === 'image');
+  const videos = items.filter(i => i.file_type === 'video');
 
   return (
     <main style={s.page}>

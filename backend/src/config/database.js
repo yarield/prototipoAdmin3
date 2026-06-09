@@ -59,6 +59,8 @@ function initSchema(db) {
       artist_id INTEGER NOT NULL,
       file_url TEXT NOT NULL,
       file_type TEXT NOT NULL CHECK(file_type IN ('image', 'video')),
+      title TEXT,
+      description TEXT,
       created_at TEXT NOT NULL DEFAULT (datetime('now')),
       FOREIGN KEY (artist_id) REFERENCES users(id)
     );

@@ -85,7 +85,8 @@ function uploadPortfolioItem(req, res) {
   if (fileType === 'video' && videos >= 1) return res.status(400).json({ error: 'Solo se permite 1 video' });
 
   const file_url = `/uploads/${req.file.filename}`;
-  const item = Portfolio.create({ artist_id: req.user.id, file_url, file_type: fileType });
+  const { title, description } = req.body;
+  const item = Portfolio.create({ artist_id: req.user.id, file_url, file_type: fileType, title, description });
   return res.status(201).json({ message: 'Archivo subido', item });
 }
 
