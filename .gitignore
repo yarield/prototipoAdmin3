@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+*/node_modules/
+
+# Variables de entorno (NUNCA subir al repo)
+.env
+.env.local
+.env.production
+
+# Build output
+frontend/dist/
+backend/dist/
+
+# Cobertura de tests
+coverage/
+*/coverage/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

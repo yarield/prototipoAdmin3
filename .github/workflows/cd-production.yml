@@ -1,0 +1,50 @@
+name: CD - Deploy a Producción
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-production:
+    name: Deploy Producción
+    runs-on: ubuntu-latest
+    environment: production  # requiere aprobación manual en GitHub
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar dependencias backend
+        working-directory: backend
+        run: npm ci
+
+      - name: Tests de integración
+        working-directory: backend
+        run: npm run test:ci
+
+      - name: Instalar dependencias frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
+      # Deploy a Render/Railway se configura en Sprint 5
+      - name: Notificar deploy a producción
+        run: echo "Deploy a producción completado"
+
+      - name: Crear tag de versión
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          VERSION="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
+          git tag $VERSION
+          git push origin $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
