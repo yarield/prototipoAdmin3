@@ -8,7 +8,9 @@ jobs:
   deploy-production:
     name: Deploy Producción
     runs-on: ubuntu-latest
-    environment: production  # requiere aprobación manual en GitHub
+    permissions:
+      contents: write  # necesario para crear y pushear tags
+    environment: production  # requiere aprobación manual en GitHub (configurar en Settings > Environments)
 
     steps:
       - name: Checkout código
@@ -45,6 +47,4 @@ jobs:
           git config user.email "actions@github.com"
           VERSION="v$(date +'%Y.%m.%d')-$(git rev-parse --short HEAD)"
           git tag $VERSION
-          git push origin $VERSION
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} $VERSION
