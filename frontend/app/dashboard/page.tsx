@@ -6,20 +6,24 @@ import Link from 'next/link';
 import { getToken, removeToken } from '@/lib/api';
 
 interface User { id: number; name: string; email: string; role: string; }
+interface NotifCount { unread: number; }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     const token = getToken();
     if (!token) { router.push('/auth/login'); return; }
-    fetch('http://localhost:3000/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch('http://localhost:3000/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
       .then(r => r.json())
-      .then(d => d.user ? setUser(d.user) : router.push('/auth/login'))
+      .then(d => { if (d.user) { setUser(d.user); } else { router.push('/auth/login'); } })
       .catch(() => router.push('/auth/login'));
+    fetch('http://localhost:3000/api/notifications', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(d => { if (typeof d.unread === 'number') setUnread(d.unread); })
+      .catch(() => {});
   }, [router]);
 
   function logout() {
@@ -35,6 +39,9 @@ export default function DashboardPage() {
         <h1 style={s.logo}>ArtConnect</h1>
         <div style={s.headerRight}>
           <span>Hola, {user.name}</span>
+          <Link href="/dashboard/notifications" style={s.notifBtn}>
+            🔔{unread > 0 && <span style={s.notifBadge}>{unread}</span>}
+          </Link>
           <button onClick={logout} style={s.logoutBtn}>Cerrar sesión</button>
         </div>
       </header>
@@ -96,6 +103,8 @@ const s: Record<string, React.CSSProperties> = {
   header: { background: '#fff', padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.1)' },
   logo: { margin: 0, color: '#0070f3' },
   headerRight: { display: 'flex', alignItems: 'center', gap: '1rem' },
+  notifBtn: { position: 'relative', fontSize: '1.3rem', textDecoration: 'none', color: '#333' },
+  notifBadge: { position: 'absolute', top: '-6px', right: '-8px', background: '#e53935', color: '#fff', borderRadius: '50%', fontSize: '0.65rem', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700 },
   logoutBtn: { padding: '0.4rem 1rem', border: '1px solid #ddd', borderRadius: '4px', cursor: 'pointer', background: '#fff' },
   container: { maxWidth: '900px', margin: '2rem auto', padding: '0 1rem' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginTop: '1.5rem' },
