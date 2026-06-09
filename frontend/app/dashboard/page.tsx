@@ -59,6 +59,11 @@ export default function DashboardPage() {
               <strong>Portafolio</strong>
               <p>Sube fotos y videos de tu trabajo</p>
             </Link>
+            <Link href="/dashboard/availability" style={s.card}>
+              <span style={s.icon}>📅</span>
+              <strong>Mi Agenda</strong>
+              <p>Gestiona tu disponibilidad</p>
+            </Link>
             <Link href="/dashboard/requests" style={s.card}>
               <span style={s.icon}>📋</span>
               <strong>Solicitudes</strong>
