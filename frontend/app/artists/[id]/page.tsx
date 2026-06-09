@@ -17,8 +17,10 @@ export default function ArtistPublicPage() {
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [availability, setAvailability] = useState<Slot[]>([]);
   const [notFound, setNotFound] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    setIsLoggedIn(!!getToken());
     fetch(`http://localhost:3000/api/artists/${id}`)
       .then(r => r.json())
       .then(d => {
@@ -43,7 +45,6 @@ export default function ArtistPublicPage() {
 
   if (!profile) return <p style={{ padding: '2rem' }}>Cargando...</p>;
 
-  const isLoggedIn = !!getToken();
   const availableDates = availability.filter(a => a.status === 'available').map(a => a.date);
 
   return (

@@ -24,6 +24,7 @@ export default function SearchPage() {
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [province, setProvince] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const fetchArtists = useCallback(async (n: string, cat: string, prov: string) => {
     const params = new URLSearchParams();
@@ -38,14 +39,13 @@ export default function SearchPage() {
   }, []);
 
   useEffect(() => {
+    setIsLoggedIn(!!getToken());
     fetchArtists('', '', '');
   }, [fetchArtists]);
 
   function handleName(v: string) { setName(v); setLoading(true); fetchArtists(v, category, province); }
   function handleCategory(v: string) { setCategory(v); setLoading(true); fetchArtists(name, v, province); }
   function handleProvince(v: string) { setProvince(v); setLoading(true); fetchArtists(name, category, v); }
-
-  const isLoggedIn = !!getToken();
 
   return (
     <main style={s.page}>
